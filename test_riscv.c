@@ -3,28 +3,28 @@
 void test_add() {
     CPU* cpu = cpu_init();
     uint32_t prog[] = {
-        0x00500133, // add x2, x0, x5
-        0x00100293, // addi x5, x0, 5
-        0x00500133, // add x2, x0, x5
+        0x00500293, // addi x5, x0, 5
+        0x00700313, // addi x6, x0, 7
+        0x006283B3, // add x7, x5, x6
         0x00100073  // ebreak
     };
     memcpy(cpu->memory, prog, sizeof(prog));
     run_emulator(cpu);
-    assert(cpu->regs[2] == 5);
+    assert(cpu->regs[7] == 12);
     free(cpu);
 }
 
 void test_lw_sw() {
     CPU* cpu = cpu_init();
     uint32_t prog[] = {
-        0x00A00293, // addi x5, x0, 10
-        0x00502023, // sw x5, 0(x0)
-        0x00002303, // lw x6, 0(x0)
+        0x02A00293, // addi x5, x0, 42
+        0x00502423, // sw x5, 8(x0)
+        0x00802303, // lw x6, 8(x0)
         0x00100073  // ebreak
     };
     memcpy(cpu->memory, prog, sizeof(prog));
     run_emulator(cpu);
-    assert(cpu->regs[6] == 10);
+    assert(cpu->regs[6] == 42);
     free(cpu);
 }
 
@@ -34,7 +34,7 @@ void test_beq() {
         0x00500293, // addi x5, x0, 5
         0x00500313, // addi x6, x0, 5
         0x00628463, // beq x5, x6, 8
-        0x00100293, // addi x5, x0, 1 (пропускаем)
+        0x00100293, // addi x5, x0, 1   (пропускаем)
         0x00A00293, // addi x5, x0, 10
         0x00100073  // ebreak
     };
@@ -47,16 +47,15 @@ void test_beq() {
 void test_jal() {
     CPU* cpu = cpu_init();
     uint32_t prog[] = {
-        0x008000EF, // jal x1, 8
-        0x00100293, // addi x5, x0, 1
-        0x00200293, // addi x5, x0, 2
-        0x00008067, // jalr x0, x1, 0
-        0x00300293, // addi x5, x0, 3
+        0x00C0006F, // jal x0, 12 (прыжок на адрес 0x0C)
+        0x00100293, // addi x5, x0, 1   (пропускается)
+        0x00200293, // addi x5, x0, 2   (пропускается)
+        0x00A00293, // addi x5, x0, 10  (выполнится)
         0x00100073  // ebreak
     };
     memcpy(cpu->memory, prog, sizeof(prog));
     run_emulator(cpu);
-    assert(cpu->regs[5] == 3);
+    assert(cpu->regs[5] == 10);
     free(cpu);
 }
 
